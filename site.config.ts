@@ -1,11 +1,11 @@
 export const CONFIG = {
   // site title
-  title: '数字花园🌿',
+  title: 'デジタルガーデン🌿',
   // site description
-  description: 'Use heptabase to build your digital garden',
+  description: '学んだこと、考えたこと、思うこと、包み隠さずありのままを綴る場所',
   // heptabase whiteboard id
   whiteboardId:
-    '641ea3e118cf2f1d33cda32e8580f77efa59094fc805b326c9fc8c6dd16489ee',
+    '555813eeb21f6814b66919a0286508d5cb71f62ad2077e5737e2644ef53a34bd',
 };
 
 export const SEO = {
