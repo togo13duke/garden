@@ -10,6 +10,7 @@ const CustomCard = Node.create({
   addOptions() {
     return {
       cards: [],
+      mentionInfos: [],
     };
   },
   addAttributes() {
@@ -25,16 +26,27 @@ const CustomCard = Node.create({
     const card = cards.find((c: Card) => c.id === cardId);
     const parentId = node.attrs.parentId;
 
+    const mentionInfos = this.options.mentionInfos || [];
+    const mentionInfo = mentionInfos.find((m: MentionInfo) => m.id === cardId);
+
     return [
       'span',
       {
         ...HTMLAttributes,
         'data-type': 'card',
         'data-card-id': cardId,
-        class: 'card',
+        class: `card ${card ? '' : 'invalid-card'}`,
         'data-parent-id': parentId,
+        noreferrer: card ? undefined : 'true',
       },
-      card ? card.title : node.attrs.text || '',
+      [
+        'span',
+        {
+          class:
+            'border-b-solid border-b border-[rgba(0,0,0,0.1)] dark:border-[rgba(255,255,255,0.08)]',
+        },
+        card ? card.title : mentionInfo?.title || 'Invalid Card',
+      ],
     ];
   },
 });

@@ -4,8 +4,7 @@ import { useCardIds, useHeptabaseStore } from "@/store/heptabase";
 import dayjs from "dayjs";
 import hljs from "highlight.js";
 import { MathpixMarkdownModel as MM } from "mathpix-markdown-it";
-import { useTheme } from "next-themes";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function CardContent({
   cardId,
@@ -19,8 +18,18 @@ export default function CardContent({
   const { allCards, setAllCards } = useHeptabaseStore();
   const { cardIds } = useCardIds();
 
-  const { theme } = useTheme();
+  const [journalInfo, setJournalInfo] = useState({ title: "", day: "" });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(() => {
+    const cardInfo = cards.find((card) => card.id === cardId);
+    if (cardInfo?.date) {
+      const day = dayjs(cardInfo.date).format("dddd");
+      setJournalInfo({ title: cardInfo.title, day });
+    }
+  }, []);
+
+  // 初始执行
   useEffect(() => {
     // 初始执行
     hljs.highlightAll();
@@ -88,6 +97,10 @@ export default function CardContent({
   const handleCardClick = (target: HTMLElement) => {
     const cardId = target.getAttribute("data-card-id");
     const parentCardId = target.getAttribute("data-parent-id");
+    const noreferrer = target.getAttribute("noreferrer");
+    if (noreferrer) {
+      return;
+    }
     if (cardId) {
       const searchParams = new URLSearchParams(window.location.search);
       const existingCardIds = searchParams.getAll("cardId");
@@ -192,8 +205,92 @@ export default function CardContent({
     window.dispatchEvent(new Event("urlchange"));
   };
 
+  useEffect(() => {
+    const processLinks = async () => {
+      const links = document.querySelectorAll("p > a");
+      for (const link of links) {
+        const href = link.getAttribute("href");
+        if (!href) continue;
+
+        const parentP = link.closest("p");
+        if (!parentP) continue;
+
+        if (href.includes("open.spotify.com/track/")) {
+          const trackId = href.match(/track\/([^?]+)/)?.[1];
+          if (trackId) {
+            const spotifyEmbed = document.createElement("div");
+            spotifyEmbed.className = "my-1";
+            spotifyEmbed.innerHTML = `
+              <iframe 
+                style="border-radius:12px" 
+                src="https://open.spotify.com/embed/track/${trackId}?utm_source=generator" 
+                width="100%" 
+                height="152" 
+                frameBorder="0" 
+                allowfullscreen="" 
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                loading="lazy">
+              </iframe>
+            `;
+            parentP.insertAdjacentElement("afterend", spotifyEmbed);
+            continue;
+          }
+        }
+
+        if (href.includes("douban.com")) {
+          try {
+            const response = await fetch(
+              `/api/douban?url=${encodeURIComponent(href)}`
+            );
+            const data = await response.json();
+
+            const doubanInfo = document.createElement("div");
+            doubanInfo.className =
+              "douban-info flex items-center gap-3 p-4 my-2 bg-douban rounded-lg border-douban";
+            doubanInfo.innerHTML = `
+              <div class="flex flex-col gap-[6px]">
+              <div class="text-muted-foreground text-xs">豆瓣</div>
+                <p>
+                <a href="${data.url}" target="_blank">${data.title}</a>
+                </p>
+                <div class="text-sm text-muted-foreground">${
+                  data.description
+                }</div>
+              </div>
+              <div class="flex-shrink-0">
+                ${
+                  data.image
+                    ? `<img src="/api/proxy-image?url=${encodeURIComponent(
+                        data.image
+                      )}" alt="${data.title}" class="w-16 rounded" />`
+                    : ""
+                }
+              </div>
+            `;
+            parentP.insertAdjacentElement("afterend", doubanInfo);
+          } catch (error) {
+            console.error("Error fetching douban data:", error);
+          }
+        }
+      }
+    };
+
+    processLinks();
+  }, []);
+
   return (
     <>
+      {journalInfo.title && (
+        <div className="py-12">
+          <div className="rounded-xl px-0.5">
+            <div className="mb-3 text-danger text-label">{journalInfo.day}</div>
+            <div className="font-semibold text-4xl text-primary">
+              {dayjs(journalInfo.title).format("MMM D, YYYY")}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
         dangerouslySetInnerHTML={{ __html: htmlContent }}
       />

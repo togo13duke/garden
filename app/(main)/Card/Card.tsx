@@ -1,13 +1,17 @@
 import CustomCard from "@/components/CustomCard";
 import CustomColor from "@/components/CustomColor";
+import CustomDate from "@/components/CustomDate";
+import CustomEmbed from "@/components/CustomEmbed";
 import Li from "@/components/CustomLi";
 import { MathBlock, MathInline } from "@/components/CustomMath";
+import CustomSection from "@/components/CustomSection";
 import { CustomTableCell } from "@/components/CustomTableCell";
 import { CustomTableRow } from "@/components/CustomTableRow";
 import CustomTodoListItem from "@/components/CustomTodoList";
 import { ToggleListItem } from "@/components/CustomToggleList";
 import CustomVideo from "@/components/CustomVideo";
 import CustomWhiteboard from "@/components/CustomWhiteboard";
+import { useHeptabaseStore } from "@/store/heptabase";
 import {
   transformBulletList,
   transformListItems,
@@ -18,9 +22,11 @@ import BulletList from "@tiptap/extension-bullet-list";
 import Code from "@tiptap/extension-code";
 import CodeBlock from "@tiptap/extension-code-block";
 import { Document } from "@tiptap/extension-document";
+import HardBreak from "@tiptap/extension-hard-break";
 import Heading from "@tiptap/extension-heading";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import Image from "@tiptap/extension-image";
+import Italic from "@tiptap/extension-italic";
 import Link from "@tiptap/extension-link";
 import ListItem from "@tiptap/extension-list-item";
 import OrderedList from "@tiptap/extension-ordered-list";
@@ -45,6 +51,8 @@ export default function CardComponent({
   content: string;
   cards: Card[];
 }) {
+  const { highlightData, mentionInfos } = useHeptabaseStore();
+
   const parsedContent = JSON.parse(content);
   const transformedContent = transformListItems(parsedContent.content).map(
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -74,7 +82,15 @@ export default function CardComponent({
           ToggleListItem,
           Code,
           Blockquote,
-          CustomWhiteboard,
+          CustomWhiteboard.configure({ mentionInfos }),
+          CustomSection,
+          CustomEmbed.configure({ highlightData, cards }),
+          HardBreak.extend({
+            name: "hard_break",
+          }),
+          Italic.extend({
+            name: "em",
+          }),
           Image.extend({
             renderHTML({ HTMLAttributes }) {
               if (!HTMLAttributes.src) {
@@ -91,6 +107,7 @@ export default function CardComponent({
           CustomTableRow,
           CustomTodoListItem,
           CustomVideo,
+          CustomDate.configure({ cards }),
           HorizontalRule.extend({
             name: "horizontal_rule",
           }),
@@ -127,7 +144,7 @@ export default function CardComponent({
           Link.extend({
             name: "link",
           }),
-          CustomCard.configure({ cards }),
+          CustomCard.configure({ cards, mentionInfos }),
           Li,
           OrderedList.extend({
             name: "numbered_list_item",
