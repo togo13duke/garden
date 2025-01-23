@@ -5,7 +5,7 @@ export const CONFIG = {
   description: '学んだこと、考えたこと、思うこと、包み隠さずありのままを綴る場所',
   // heptabase whiteboard id
   whiteboardId:
-    '555813eeb21f6814b66919a0286508d5cb71f62ad2077e5737e2644ef53a34bd'
+    '37512e56635463454b93d67380eac494bb3f1473b49c2c3c6c47e0f18c808e3c',
 };
 
 export const SEO = {
