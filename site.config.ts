@@ -1,6 +1,6 @@
 export const CONFIG = {
   // site title
-  title: 'blog',
+  title: 'garden',
   // site description
   description: '学んだこと、考えたこと、思うこと、包み隠さずありのままを綴る場所',
   // heptabase whiteboard id
